@@ -1,0 +1,13 @@
+database:
+  mode: sqlite # veya postgresql
+
+  postgresql:
+    host: localhost
+    port: 5432
+    name: skyrealm
+    user: minecraft
+    password: gizli123
+    pool-size: 10
+
+  sqlite:
+    file: data.db

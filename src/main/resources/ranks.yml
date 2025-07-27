@@ -1,0 +1,19 @@
+ranks:
+  default:
+    default: true
+    prefix: "&7[OYUNCU]"
+    suffix: ""
+    inheritance: []
+    weight: 0
+    permissions:
+      - "test.test"
+
+  vip:
+    default: false
+    prefix: "&a[VIP]"
+    suffix: ""
+    inheritance: []
+    weight: 10
+    permissions:
+      - "test.test"
+      - "fly.use"

@@ -1,0 +1,250 @@
+package net.neostellar.astalisPermManager.commands;
+
+import net.neostellar.astalisPermManager.AstalisPermManager;
+import net.neostellar.astalisPermManager.guis.RankListGui;
+import net.neostellar.astalisPermManager.rank.Rank;
+import net.neostellar.astalisPermManager.rank.RankManager;
+import net.neostellar.astalisPermManager.utils.TimeUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.Sound;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
+public class ApmCommandExecutor implements CommandExecutor {
+    @Override
+    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+
+        if (!(commandSender instanceof Player)){
+            commandSender.sendMessage("This command can only be executed by players.");
+            return true;
+        }
+
+        if (strings.length == 0) {
+            commandSender.sendMessage("§c/apm <rank|player> ...");
+            return true;
+        }
+
+        switch (strings[0].toLowerCase()) {
+            case "rank":
+                handleRankCommand(commandSender, strings);
+                break;
+            case "player":
+                handlePlayerCommand(commandSender, strings);
+                break;
+            default:
+                commandSender.sendMessage("§cBilinmeyen komut: " + strings[0]);
+        }
+
+        return true;
+    }
+
+    private void handleRankCommand(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage("§cKullanım: /apm rank <give|create|delete|setdefault|addperm|removeperm|addinherit|removeinherit|list|show>");
+            return;
+        }
+
+        String sub = args[1].toLowerCase();
+        RankManager manager = AstalisPermManager.getRankManager();
+
+        switch (sub) {
+            case "give":
+                if (!hasPermissionOrWarn(sender, "give")) return;
+                if (args.length != 5) {
+                    sender.sendMessage("§cKullanım: /apm rank give <player> <rank_id> <duration>");
+                    return;
+                }
+                String playerName = args[2];
+                String rankId = args[3];
+                String durationStr = args[4];
+
+                try {
+                    long duration = TimeUtils.parseDuration(durationStr);
+                    sender.sendMessage("§a" + playerName + " adlı oyuncuya " + rankId + " rütbesi verildi. Süre: " + duration + "ms");
+                } catch (Exception e) {
+                    sender.sendMessage("§cGeçersiz süre formatı.");
+                }
+                break;
+
+            case "create":
+                if (!hasPermissionOrWarn(sender, "create")) return;
+                if (args.length < 3) {
+                    sender.sendMessage("§cKullanım: /apm rank create <id> [prefix] [suffix] [weight]");
+                    return;
+                }
+                String id = args[2];
+                String prefix = args.length > 3 ? args[3] : "";
+                String suffix = args.length > 4 ? args[4] : "";
+                int weight = 0;
+                if (args.length > 5) {
+                    try {
+                        weight = Integer.parseInt(args[5]);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage("§cWeight sayısal olmalı.");
+                        return;
+                    }
+                }
+                boolean success = manager.createRank(id, prefix, suffix, weight);
+                sender.sendMessage(success ? "§aRank oluşturuldu: " + id : "§cBu ID zaten var.");
+                break;
+
+            case "delete":
+                if (!hasPermissionOrWarn(sender, "delete")) return;
+                if (args.length < 3) {
+                    sender.sendMessage("§cKullanım: /apm rank delete <id>");
+                    return;
+                }
+                if (manager.deleteRank(args[2])) {
+                    sender.sendMessage("§aRank silindi: " + args[2]);
+                } else {
+                    sender.sendMessage("§cRank silinemedi.");
+                }
+                break;
+
+            case "setdefault":
+                if (!hasPermissionOrWarn(sender, "setdefault")) return;
+                if (args.length < 3) {
+                    sender.sendMessage("§cKullanım: /apm rank setdefault <id>");
+                    return;
+                }
+                if (manager.setDefaultRank(args[2])) {
+                    sender.sendMessage("§aVarsayılan rank ayarlandı: " + args[2]);
+                } else {
+                    sender.sendMessage("§cRank bulunamadı.");
+                }
+                break;
+
+            case "rankgui":
+                if (!hasPermissionOrWarn(sender, "rankgui")) return;
+                Player player = (Player) sender;
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                new RankListGui().open(player);
+                break;
+
+            case "addperm":
+                if (!hasPermissionOrWarn(sender, "addperm")) return;
+                if (args.length < 4) {
+                    sender.sendMessage("§cKullanım: /apm rank addperm <id> <permission>");
+                    return;
+                }
+                if (manager.addPermission(args[2], args[3])) {
+                    sender.sendMessage("§aİzin eklendi.");
+                } else {
+                    sender.sendMessage("§cEklenemedi.");
+                }
+                break;
+
+            case "removeperm":
+                if (!hasPermissionOrWarn(sender, "removeperm")) return;
+                if (args.length < 4) {
+                    sender.sendMessage("§cKullanım: /apm rank removeperm <id> <permission>");
+                    return;
+                }
+                if (manager.removePermission(args[2], args[3])) {
+                    sender.sendMessage("§aİzin kaldırıldı.");
+                } else {
+                    sender.sendMessage("§cKaldırılamadı.");
+                }
+                break;
+
+            case "addinherit":
+                if (!hasPermissionOrWarn(sender, "addinherit")) return;
+                if (args.length < 4) {
+                    sender.sendMessage("§cKullanım: /apm rank addinherit <id> <parent_id>");
+                    return;
+                }
+                if (manager.addInheritance(args[2], args[3])) {
+                    sender.sendMessage("§aMiras eklendi.");
+                } else {
+                    sender.sendMessage("§cEklenemedi.");
+                }
+                break;
+
+            case "removeinherit":
+                if (!hasPermissionOrWarn(sender, "removeinherit")) return;
+                if (args.length < 4) {
+                    sender.sendMessage("§cKullanım: /apm rank removeinherit <id> <parent_id>");
+                    return;
+                }
+                if (manager.removeInheritance(args[2], args[3])) {
+                    sender.sendMessage("§aMiras kaldırıldı.");
+                } else {
+                    sender.sendMessage("§cKaldırılamadı.");
+                }
+                break;
+
+            case "list":
+                if (!hasPermissionOrWarn(sender, "list")) return;
+                sender.sendMessage("§6[Ranks]");
+                for (Rank rank : manager.getRanks().values()) {
+                    String line = " §7- §e" + rank.getId();
+                    if (rank == manager.getDefaultRank()) {
+                        line += " §7(§aVarsayılan§7)";
+                    }
+                    sender.sendMessage(line);
+                }
+                break;
+
+            case "show":
+                if (!hasPermissionOrWarn(sender, "show")) return;
+                if (args.length < 3) {
+                    sender.sendMessage("§cKullanım: /apm rank show <id>");
+                    return;
+                }
+
+                Rank rankToShow = manager.getRank(args[2]);
+                if (rankToShow == null) {
+                    sender.sendMessage("§cRank bulunamadı.");
+                    return;
+                }
+
+                sender.sendMessage("§6[Rank: " + rankToShow.getId() + "]");
+                sender.sendMessage("§7Prefix: §r" + rankToShow.getPrefix());
+                sender.sendMessage("§7Suffix: §r" + rankToShow.getSuffix());
+                sender.sendMessage("§7Weight: §e" + rankToShow.getWeight());
+                sender.sendMessage("§7Inheritance:");
+                if (rankToShow.getInheritance().isEmpty()) {
+                    sender.sendMessage(" §8(yok)");
+                } else {
+                    for (String inh : rankToShow.getInheritance()) {
+                        sender.sendMessage(" §7- §e" + inh);
+                    }
+                }
+                sender.sendMessage("§7Permissions:");
+                if (rankToShow.getPermissions().isEmpty()) {
+                    sender.sendMessage(" §8(yok)");
+                } else {
+                    for (String perm : rankToShow.getPermissions()) {
+                        sender.sendMessage(" §7- §f" + perm);
+                    }
+                }
+                break;
+
+            default:
+                sender.sendMessage("§cBilinmeyen rank alt komutu.");
+        }
+    }
+
+
+    private void handlePlayerCommand(CommandSender sender, String[] args) {
+        if (args.length != 2) {
+            sender.sendMessage("§cKullanım: /apm player <oyuncu_ismi>");
+            return;
+        }
+
+        String playerName = args[1];
+        sender.sendMessage("§7" + playerName + " oyuncusunun bilgileri yükleniyor...");
+        // Oyuncu bilgilerini veritabanından çekebilirsin
+    }
+
+    private boolean hasPermissionOrWarn(CommandSender sender, String node) {
+        if (sender.hasPermission("apm.admin." + node)) return true;
+        sender.sendMessage("§cBu komutu kullanmak için §eapm.admin." + node + " §ciznine sahip olmalısın.");
+        return false;
+    }
+
+
+}

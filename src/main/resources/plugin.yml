@@ -1,0 +1,34 @@
+name: AstalisPermManager
+version: '1.0-SNAPSHOT'
+main: net.neostellar.astalisPermManager.AstalisPermManager
+api-version: '1.21'
+commands:
+  apm:
+    description: Ana komut
+    usage: /apm <rank|player>
+    aliases: [ ]
+    permissions:
+      apm.admin.give:
+        description: Oyuncuya rank verme izni
+        default: op
+      apm.admin.create:
+        description: Yeni rank oluşturma izni
+        default: op
+      apm.admin.delete:
+        default: op
+      apm.admin.setdefault:
+        default: op
+      apm.admin.addperm:
+        default: op
+      apm.admin.removeperm:
+        default: op
+      apm.admin.addinherit:
+        default: op
+      apm.admin.removeinherit:
+        default: op
+      apm.admin.list:
+        default: op
+      apm.admin.show:
+        default: op
+      apm.admin.rankgui:
+        default: op
