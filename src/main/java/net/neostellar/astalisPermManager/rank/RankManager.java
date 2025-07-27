@@ -49,6 +49,15 @@ public class RankManager {
             net.neostellar.astalisPermManager.rank.Rank rank = new net.neostellar.astalisPermManager.rank.Rank(id, prefix, suffix, weight, inheritance, perms);
             ranks.put(id.toLowerCase(), rank);
 
+            for (Rank ranky : ranks.values()) {
+                Set<String> allPerms = new HashSet<>();
+                Set<String> visited = new HashSet<>();
+                resolvePermissionsRecursive(ranky, allPerms, visited);
+                ranky.getResolvedPermissions().clear();
+                ranky.getResolvedPermissions().addAll(allPerms);
+            }
+
+
             if (isDefault) {
                 defaultRank = rank;
             }
@@ -243,6 +252,21 @@ public class RankManager {
         reloadRanks();
         return true;
     }
+
+    private void resolvePermissionsRecursive(Rank rank, Set<String> perms, Set<String> visited) {
+        if (visited.contains(rank.getId())) return;
+        visited.add(rank.getId());
+
+        perms.addAll(rank.getPermissions());
+
+        for (String parentId : rank.getInheritance()) {
+            Rank parent = getRank(parentId);
+            if (parent != null) {
+                resolvePermissionsRecursive(parent, perms, visited);
+            }
+        }
+    }
+
 
 
 }

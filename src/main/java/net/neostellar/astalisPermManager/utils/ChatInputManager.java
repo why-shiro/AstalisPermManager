@@ -36,16 +36,19 @@ public class ChatInputManager {
             case "prefix":
                 rankManager.setPrefix(id, message);
                 player.sendMessage("§aYeni prefix ayarlandı: §r" + message);
+                AstalisPermManager.getPermissionService().refreshAll();
                 break;
             case "suffix":
                 rankManager.setSuffix(id, message);
                 player.sendMessage("§aYeni suffix ayarlandı: §r" + message);
+                AstalisPermManager.getPermissionService().refreshAll();
                 break;
             case "weight":
                 try {
                     int weight = Integer.parseInt(message);
                     rankManager.setWeight(id, weight);
                     player.sendMessage("§aYeni weight ayarlandı: §e" + weight);
+                    AstalisPermManager.getPermissionService().refreshAll();
                 } catch (NumberFormatException e) {
                     player.sendMessage("§cWeight sayısal olmalı.");
                 }

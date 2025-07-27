@@ -12,6 +12,7 @@ public class Rank {
     private final int weight;
     private final List<String> inheritance;
     private final List<String> permissions;
+    private final Set<String> resolvedPermissions = new HashSet<>();
 
 
     public Rank(String id, String prefix, String suffix, int weight, List<String> inheritance, List<String> permissions) {
@@ -43,8 +44,8 @@ public class Rank {
         return inheritance;
     }
 
-    public List<String> getPermissions() {
-        return permissions;
-    }
+    public List<String> getPermissions() {return permissions;}
+
+    public Set<String> getResolvedPermissions() { return resolvedPermissions; }
 
 }

@@ -1,6 +1,7 @@
 package net.neostellar.astalisPermManager.commands;
 
 import net.neostellar.astalisPermManager.AstalisPermManager;
+import net.neostellar.astalisPermManager.database.dao.DAOProvider;
 import net.neostellar.astalisPermManager.guis.RankListGui;
 import net.neostellar.astalisPermManager.rank.Rank;
 import net.neostellar.astalisPermManager.rank.RankManager;
@@ -13,14 +14,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
+
 public class ApmCommandExecutor implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-
-        if (!(commandSender instanceof Player)){
-            commandSender.sendMessage("This command can only be executed by players.");
-            return true;
-        }
 
         if (strings.length == 0) {
             commandSender.sendMessage("§c/apm <rank|player> ...");
@@ -62,8 +60,17 @@ public class ApmCommandExecutor implements CommandExecutor {
                 String durationStr = args[4];
 
                 try {
-                    long duration = TimeUtils.parseDuration(durationStr);
-                    sender.sendMessage("§a" + playerName + " adlı oyuncuya " + rankId + " rütbesi verildi. Süre: " + duration + "ms");
+                    if (durationStr.equalsIgnoreCase("permanent")){
+                        sender.sendMessage("§a" + playerName + " adlı oyuncuya " + rankId + " rütbesi verildi. Süre: §cSınırsız");
+                        DAOProvider.getPlayerRankDAO().setPlayerRank(Bukkit.getPlayerUniqueId(playerName), rankId, null);
+                        AstalisPermManager.getPermissionService().refreshAll();
+                    }else {
+                        long duration = TimeUtils.parseDuration(durationStr);
+                        Instant expiry = Instant.now().plusMillis(duration);
+                        sender.sendMessage("§a" + playerName + " adlı oyuncuya " + rankId + " rütbesi verildi. Süre: " + duration + "ms");
+                        DAOProvider.getPlayerRankDAO().setPlayerRank(Bukkit.getPlayerUniqueId(playerName), rankId, expiry);
+                        AstalisPermManager.getPermissionService().refreshAll();
+                    }
                 } catch (Exception e) {
                     sender.sendMessage("§cGeçersiz süre formatı.");
                 }
@@ -89,6 +96,7 @@ public class ApmCommandExecutor implements CommandExecutor {
                 }
                 boolean success = manager.createRank(id, prefix, suffix, weight);
                 sender.sendMessage(success ? "§aRank oluşturuldu: " + id : "§cBu ID zaten var.");
+                AstalisPermManager.getPermissionService().refreshAll();
                 break;
 
             case "delete":
@@ -99,6 +107,7 @@ public class ApmCommandExecutor implements CommandExecutor {
                 }
                 if (manager.deleteRank(args[2])) {
                     sender.sendMessage("§aRank silindi: " + args[2]);
+                    AstalisPermManager.getPermissionService().refreshAll();
                 } else {
                     sender.sendMessage("§cRank silinemedi.");
                 }
@@ -112,6 +121,7 @@ public class ApmCommandExecutor implements CommandExecutor {
                 }
                 if (manager.setDefaultRank(args[2])) {
                     sender.sendMessage("§aVarsayılan rank ayarlandı: " + args[2]);
+                    AstalisPermManager.getPermissionService().refreshAll();
                 } else {
                     sender.sendMessage("§cRank bulunamadı.");
                 }
@@ -132,6 +142,7 @@ public class ApmCommandExecutor implements CommandExecutor {
                 }
                 if (manager.addPermission(args[2], args[3])) {
                     sender.sendMessage("§aİzin eklendi.");
+                    AstalisPermManager.getPermissionService().refreshAll();
                 } else {
                     sender.sendMessage("§cEklenemedi.");
                 }
@@ -145,6 +156,7 @@ public class ApmCommandExecutor implements CommandExecutor {
                 }
                 if (manager.removePermission(args[2], args[3])) {
                     sender.sendMessage("§aİzin kaldırıldı.");
+                    AstalisPermManager.getPermissionService().refreshAll();
                 } else {
                     sender.sendMessage("§cKaldırılamadı.");
                 }
@@ -158,6 +170,7 @@ public class ApmCommandExecutor implements CommandExecutor {
                 }
                 if (manager.addInheritance(args[2], args[3])) {
                     sender.sendMessage("§aMiras eklendi.");
+                    AstalisPermManager.getPermissionService().refreshAll();
                 } else {
                     sender.sendMessage("§cEklenemedi.");
                 }
@@ -171,6 +184,7 @@ public class ApmCommandExecutor implements CommandExecutor {
                 }
                 if (manager.removeInheritance(args[2], args[3])) {
                     sender.sendMessage("§aMiras kaldırıldı.");
+                    AstalisPermManager.getPermissionService().refreshAll();
                 } else {
                     sender.sendMessage("§cKaldırılamadı.");
                 }

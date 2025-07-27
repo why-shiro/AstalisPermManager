@@ -4,22 +4,34 @@ import net.neostellar.astalisPermManager.database.DatabaseManager;
 
 import java.sql.*;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public class PostgresPlayerRankDAO implements PlayerRankDAO {
     @Override
     public void createTable() {
+
         String sql = """
-            CREATE TABLE IF NOT EXISTS player_ranks (
-                player_uuid UUID PRIMARY KEY,
-                rank_id TEXT NOT NULL,
-                expires_at TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT now()
-            );
+        CREATE TABLE IF NOT EXISTS player_ranks (
+            player_uuid TEXT PRIMARY KEY,
+            rank_id TEXT NOT NULL,
+            expires_at TEXT,
+            updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+        );
         """;
+
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String indexSQL = "CREATE INDEX IF NOT EXISTS idx_rank_expiry ON player_ranks(expires_at);";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(indexSQL)) {
             ps.execute();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -82,6 +94,16 @@ public class PostgresPlayerRankDAO implements PlayerRankDAO {
         }
 
         return null;
+    }
+
+    @Override
+    public List<UUID> getExpiredRanks() {
+        return List.of();
+    }
+
+    @Override
+    public void resetToDefaultRank(UUID uuid, String defaultRankId) {
+
     }
 }
 

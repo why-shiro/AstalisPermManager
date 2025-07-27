@@ -64,7 +64,7 @@ public class ApmTabCompleter implements TabCompleter {
 
                 case "create":
                     if (args.length == 4) return List.of("&a[PREFIX]");
-                    if (args.length == 5) return List.of("&7[SUFFIX]");
+                    if (args.length == 5) return List.of("&f");
                     if (args.length == 6) return List.of("10", "50", "100");
                     break;
 
