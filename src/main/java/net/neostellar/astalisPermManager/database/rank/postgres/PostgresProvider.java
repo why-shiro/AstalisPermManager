@@ -20,32 +20,55 @@ public class PostgresProvider implements DatabaseProvider {
     @Override
     public void init() {
         FileConfiguration cfg = plugin.getConfig();
-        String host = cfg.getString("database.postgresql.host");
-        int port = cfg.getInt("database.postgresql.port");
-        String db = cfg.getString("database.postgresql.name");
-        String user = cfg.getString("database.postgresql.user");
-        String pass = cfg.getString("database.postgresql.password");
-        int poolSize = cfg.getInt("database.postgresql.pool-size");
 
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://" + host + ":" + port + "/" + db);
-        config.setUsername(user);
-        config.setPassword(pass);
-        config.setMaximumPoolSize(poolSize);
-        config.setPoolName("SkyRealm-PostgreSQL");
+        String host = cfg.getString("database.postgresql.host", "localhost");
+        int port = cfg.getInt("database.postgresql.port", 5432);
+        String db = cfg.getString("database.postgresql.name", "skyrealm");
+        String user = cfg.getString("database.postgresql.user", "postgres");
+        String pass = cfg.getString("database.postgresql.password", "");
+        int poolSize = cfg.getInt("database.postgresql.pool-size", 10);
 
-        dataSource = new HikariDataSource(config);
-        plugin.getLogger().info("✅ PostgreSQL bağlantısı kuruldu.");
+        // JDBC bağlantı adresi
+        String jdbcUrl = "jdbc:postgresql://" + host + ":" + port + "/" + db;
+
+        try {
+            // 🔧 DRIVER'ı manuel yükle
+            Class.forName("org.postgresql.Driver");
+
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(jdbcUrl);
+            config.setUsername(user);
+            config.setPassword(pass);
+            config.setMaximumPoolSize(poolSize);
+            config.setMinimumIdle(1);
+            config.setConnectionTimeout(10000); // 10 saniye
+            config.setPoolName("SkyRealm-PostgreSQL");
+            config.addDataSourceProperty("ssl", "false"); // SSL kapalı, opsiyonel
+
+            dataSource = new HikariDataSource(config);
+            plugin.getLogger().info("✅ PostgreSQL bağlantısı kuruldu: " + jdbcUrl);
+        } catch (ClassNotFoundException e) {
+            plugin.getLogger().severe("❌ PostgreSQL JDBC Driver sınıfı bulunamadı: " + e.getMessage());
+        } catch (Exception e) {
+            plugin.getLogger().severe("❌ PostgreSQL bağlantısı kurulamadı: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
+
 
     @Override
     public Connection getConnection() throws SQLException {
+        if (dataSource == null || dataSource.isClosed()) {
+            throw new SQLException("PostgreSQL veri kaynağı kapalı veya başlatılmamış.");
+        }
         return dataSource.getConnection();
     }
 
     @Override
     public void close() {
-        if (dataSource != null) dataSource.close();
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
+            plugin.getLogger().info("🔒 PostgreSQL bağlantısı kapatıldı.");
+        }
     }
 }
-
