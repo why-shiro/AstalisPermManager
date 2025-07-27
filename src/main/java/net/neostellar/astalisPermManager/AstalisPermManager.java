@@ -7,6 +7,7 @@ import net.neostellar.astalisPermManager.database.DatabaseType;
 import net.neostellar.astalisPermManager.database.dao.DAOProvider;
 import net.neostellar.astalisPermManager.listener.ChatFormatListener;
 import net.neostellar.astalisPermManager.listener.PlayerJoinListener;
+import net.neostellar.astalisPermManager.listener.PlayerLeaveListener;
 import net.neostellar.astalisPermManager.listener.gui.GuiClickListener;
 import net.neostellar.astalisPermManager.listener.gui.GuiPlayerInputListener;
 import net.neostellar.astalisPermManager.rank.Rank;
@@ -48,6 +49,7 @@ public final class AstalisPermManager extends JavaPlugin {
 
         // Listeners
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerLeaveListener(), this);
         getServer().getPluginManager().registerEvents(new GuiClickListener(), this);
         getServer().getPluginManager().registerEvents(new GuiPlayerInputListener(), this);
         getServer().getPluginManager().registerEvents(new ChatFormatListener(), this);

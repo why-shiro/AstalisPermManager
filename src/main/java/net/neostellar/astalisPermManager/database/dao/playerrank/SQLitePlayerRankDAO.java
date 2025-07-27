@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -77,6 +78,32 @@ public class SQLitePlayerRankDAO implements PlayerRankDAO {
     }
 
     @Override
+    public Instant getRankExpiry(UUID uuid) {
+        String sql = "SELECT expires_at FROM player_ranks WHERE player_uuid = ?";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String expiresAt = rs.getString("expires_at");
+                if (expiresAt != null) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                            .withZone(ZoneOffset.UTC);
+                    LocalDateTime ldt = LocalDateTime.parse(expiresAt, formatter);
+                    return ldt.toInstant(ZoneOffset.UTC);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
+
+    @Override
     public String getPlayerRank(@NotNull UUID uuid) {
         String sql = "SELECT rank_id FROM player_ranks WHERE player_uuid = ?";
 
@@ -102,7 +129,11 @@ public class SQLitePlayerRankDAO implements PlayerRankDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 String expiresStr = rs.getString("expires_at");
-                return (expiresStr != null) ? Instant.parse(expiresStr) : null;
+                if (expiresStr != null) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    LocalDateTime ldt = LocalDateTime.parse(expiresStr, formatter);
+                    return ldt.toInstant(ZoneOffset.UTC);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -110,6 +141,7 @@ public class SQLitePlayerRankDAO implements PlayerRankDAO {
 
         return null;
     }
+
 
     public List<UUID> getExpiredRanks() {
         String sql = "SELECT player_uuid FROM player_ranks WHERE expires_at IS NOT NULL AND expires_at <= datetime('now', 'utc')";

@@ -11,5 +11,6 @@ public interface PlayerRankDAO {
     Instant getRankExpireTime(UUID uuid);
     List<UUID> getExpiredRanks();
     void resetToDefaultRank(UUID uuid, String defaultRankId);
+    Instant getRankExpiry(UUID uuid);
 }
 

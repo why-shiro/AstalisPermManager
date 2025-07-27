@@ -94,12 +94,40 @@ public class ApmTabCompleter implements TabCompleter {
             }
         }
 
-        if (args[0].equalsIgnoreCase("player") && args.length == 2) {
-            return Bukkit.getOnlinePlayers().stream()
-                    .map(p -> p.getName())
-                    .filter(p -> p.toLowerCase().startsWith(args[1].toLowerCase()))
-                    .collect(Collectors.toList());
+        if (args[0].equalsIgnoreCase("player")) {
+            if (args.length == 2) {
+                // /apm player <subcommand veya oyuncu_ismi>
+                List<String> subs = List.of("setperm"); // istersen future sublar da buraya
+                List<String> playerNames = Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .filter(p -> p.toLowerCase().startsWith(args[1].toLowerCase()))
+                        .collect(Collectors.toList());
+
+                // Hem subcommand'ler hem oyuncu isimleri eşleşebilir
+                List<String> combined = new ArrayList<>();
+                combined.addAll(partial(subs, args[1]));
+                combined.addAll(playerNames);
+                return combined;
+            }
+
+            // /apm player setperm <oyuncu> ...
+            if (args[1].equalsIgnoreCase("setperm")) {
+                if (args.length == 3) {
+                    // oyuncu adı
+                    return Bukkit.getOnlinePlayers().stream()
+                            .map(Player::getName)
+                            .filter(p -> p.toLowerCase().startsWith(args[2].toLowerCase()))
+                            .collect(Collectors.toList());
+                } else if (args.length == 4) {
+                    // permission
+                    return List.of("essentials.fly", "myplugin.cool", "*");
+                } else if (args.length == 5) {
+                    // süre
+                    return List.of("10m", "2h", "1d", "permanent");
+                }
+            }
         }
+
 
         return List.of();
     }

@@ -84,6 +84,21 @@ public class PostgresPlayerPermissionDAO implements PlayerPermissionDAO {
     }
 
     @Override
+    public List<PlayerPermissionEntry> getAllPermissions(UUID uuid) {
+        return List.of();
+    }
+
+    @Override
+    public Instant getPermissionExpiry(UUID uuid, String permission) {
+        return null;
+    }
+
+    @Override
+    public List<UUID> clearExpiredPermissions() {
+        return List.of();
+    }
+
+    @Override
     public void removePermission(UUID uuid, String permission) {
         String sql = "DELETE FROM player_permissions WHERE player_uuid = ? AND permission = ?";
 
@@ -97,17 +112,6 @@ public class PostgresPlayerPermissionDAO implements PlayerPermissionDAO {
         }
     }
 
-
-    public void clearExpiredPermissions() {
-        String sql = "DELETE FROM player_permissions WHERE expires_at IS NOT NULL AND expires_at < now()";
-
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 
 
 

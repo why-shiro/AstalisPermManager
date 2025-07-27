@@ -16,7 +16,7 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        AstalisPermManager.getPermissionService().refresh(event.getPlayer());
+        AstalisPermManager.getPermissionService().refreshAsync(event.getPlayer());
     }
 
 

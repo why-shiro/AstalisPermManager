@@ -22,4 +22,17 @@ public class TimeUtils {
 
         return number * multiplier;
     }
+
+    public static String formatDuration(long millis) {
+        long seconds = millis / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        long days = hours / 24;
+
+        if (days > 0) return days + " gün";
+        if (hours > 0) return hours + " saat";
+        if (minutes > 0) return minutes + " dakika";
+        return seconds + " saniye";
+    }
+
 }

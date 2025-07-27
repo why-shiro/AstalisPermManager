@@ -105,6 +105,11 @@ public class PostgresPlayerRankDAO implements PlayerRankDAO {
     public void resetToDefaultRank(UUID uuid, String defaultRankId) {
 
     }
+
+    @Override
+    public Instant getRankExpiry(UUID uuid) {
+        return null;
+    }
 }
 
 

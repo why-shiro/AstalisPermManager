@@ -15,6 +15,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 
 public class ApmCommandExecutor implements CommandExecutor {
     @Override
@@ -63,13 +65,22 @@ public class ApmCommandExecutor implements CommandExecutor {
                     if (durationStr.equalsIgnoreCase("permanent")){
                         sender.sendMessage("§a" + playerName + " adlı oyuncuya " + rankId + " rütbesi verildi. Süre: §cSınırsız");
                         DAOProvider.getPlayerRankDAO().setPlayerRank(Bukkit.getPlayerUniqueId(playerName), rankId, null);
-                        AstalisPermManager.getPermissionService().refreshAll();
+
+                        Player target = Bukkit.getPlayer(playerName);
+                        if (target != null && target.isOnline()) {
+                            AstalisPermManager.getPermissionService().refreshAsync(target);
+                        }
                     }else {
                         long duration = TimeUtils.parseDuration(durationStr);
                         Instant expiry = Instant.now().plusMillis(duration);
                         sender.sendMessage("§a" + playerName + " adlı oyuncuya " + rankId + " rütbesi verildi. Süre: " + duration + "ms");
                         DAOProvider.getPlayerRankDAO().setPlayerRank(Bukkit.getPlayerUniqueId(playerName), rankId, expiry);
-                        AstalisPermManager.getPermissionService().refreshAll();
+
+                        Player target = Bukkit.getPlayer(playerName);
+                        if (target != null && target.isOnline()) {
+                            AstalisPermManager.getPermissionService().refreshAsync(target);
+                        }
+
                     }
                 } catch (Exception e) {
                     sender.sendMessage("§cGeçersiz süre formatı.");
@@ -244,15 +255,116 @@ public class ApmCommandExecutor implements CommandExecutor {
 
 
     private void handlePlayerCommand(CommandSender sender, String[] args) {
-        if (args.length != 2) {
-            sender.sendMessage("§cKullanım: /apm player <oyuncu_ismi>");
+        if (args.length < 2) {
+            sender.sendMessage("§cKullanım: /apm player <oyuncu_ismi|setperm> [...]");
             return;
         }
 
+        if (args[1].equalsIgnoreCase("setperm")) {
+            if (!hasPermissionOrWarn(sender, "setperm")) return;
+            if (args.length != 5) {
+                sender.sendMessage("§cKullanım: /apm player setperm <oyuncu_ismi> <permission> <süre>");
+                sender.sendMessage("§7Süre örnekleri: 10m, 2h, 1d, permanent");
+                return;
+            }
+
+            String playerName = args[2];
+            UUID uuid = Bukkit.getPlayerUniqueId(playerName);
+            if (uuid == null) {
+                sender.sendMessage("§cOyuncu bulunamadı: " + playerName);
+                return;
+            }
+
+            String permission = args[3];
+            String durationStr = args[4];
+
+            try {
+                Instant expiry = null;
+                if (!durationStr.equalsIgnoreCase("permanent")) {
+                    long duration = TimeUtils.parseDuration(durationStr);
+                    expiry = Instant.now().plusMillis(duration);
+                }
+
+                DAOProvider.getPlayerPermissionDAO().setPermission(uuid, permission, expiry);
+                sender.sendMessage("§a" + playerName + " adlı oyuncuya §e" + permission + " §aizni verildi.");
+                if (expiry != null) {
+                    sender.sendMessage("§7Sona erme: §e" + expiry.toString());
+                } else {
+                    sender.sendMessage("§7Sona erme: §aSınırsız");
+                }
+
+                AstalisPermManager.getPermissionService().refreshAsync(Bukkit.getPlayer(uuid));
+
+            } catch (Exception e) {
+                sender.sendMessage("§cGeçersiz süre formatı.");
+                e.printStackTrace();
+            }
+            return;
+        } else if (args[1].equalsIgnoreCase("removeperm")) {
+            if (!hasPermissionOrWarn(sender, "removeperm")) return;
+            if (args.length != 4) {
+                sender.sendMessage("§cKullanım: /apm player removeperm <oyuncu_ismi> <permission>");
+                return;
+            }
+
+            String playerName = args[2];
+            UUID uuid = Bukkit.getPlayerUniqueId(playerName);
+            if (uuid == null) {
+                sender.sendMessage("§cOyuncu bulunamadı: " + playerName);
+                return;
+            }
+
+            String permission = args[3];
+
+            DAOProvider.getPlayerPermissionDAO().removePermission(uuid, permission);
+            sender.sendMessage("§e" + permission + " §cizni " + playerName + " adlı oyuncudan kaldırıldı.");
+
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null && player.isOnline()) {
+                AstalisPermManager.getPermissionService().refreshAsync(player);
+            }
+
+            return;
+        }
+
+        // Diğer: oyuncu bilgilerini göster
         String playerName = args[1];
-        sender.sendMessage("§7" + playerName + " oyuncusunun bilgileri yükleniyor...");
-        // Oyuncu bilgilerini veritabanından çekebilirsin
+        UUID uuid = Bukkit.getPlayerUniqueId(playerName);
+        if (uuid == null) {
+            sender.sendMessage("§cOyuncu bulunamadı: " + playerName);
+            return;
+        }
+
+        String rankId = DAOProvider.getPlayerRankDAO().getPlayerRank(uuid);
+        Instant expiry = DAOProvider.getPlayerRankDAO().getRankExpiry(uuid);
+        List<String> permissions = DAOProvider.getPlayerPermissionDAO().getActivePermissions(uuid);
+
+        sender.sendMessage("§6[" + playerName + "] §7Kullanıcı Bilgileri");
+        sender.sendMessage("§7UUID: §f" + uuid.toString());
+
+        if (rankId != null) {
+            sender.sendMessage("§7Rank: §a" + rankId);
+            if (expiry != null) {
+                long remaining = expiry.getEpochSecond() - Instant.now().getEpochSecond();
+                String humanReadable = TimeUtils.formatDuration(remaining * 1000);
+                sender.sendMessage("§7Sona erme: §e" + expiry.toString() + " §8(" + humanReadable + ")");
+            } else {
+                sender.sendMessage("§7Sona erme: §aSınırsız");
+            }
+        } else {
+            sender.sendMessage("§7Rank: §cYok");
+        }
+
+        sender.sendMessage("§7Aktif Yetkiler:");
+        if (permissions.isEmpty()) {
+            sender.sendMessage(" §8(yok)");
+        } else {
+            for (String perm : permissions) {
+                sender.sendMessage(" §7- §f" + perm);
+            }
+        }
     }
+
 
     private boolean hasPermissionOrWarn(CommandSender sender, String node) {
         if (sender.hasPermission("apm.admin." + node)) return true;
