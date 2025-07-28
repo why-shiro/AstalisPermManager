@@ -79,4 +79,26 @@ public class PermissionService {
             attachments.remove(uuid);
         }
     }
+
+    public String getPrefixByUUID(UUID uuid) {
+        String rankId = DAOProvider.getPlayerRankDAO().getPlayerRank(uuid);
+        if (rankId == null) {
+            rankId = AstalisPermManager.getRankManager().getDefaultRankId();
+        }
+
+        Rank rank = AstalisPermManager.getRankManager().getRank(rankId);
+        return rank != null ? rank.getPrefix() : "";
+    }
+
+    public String getSuffixByUUID(UUID uuid) {
+        String rankId = DAOProvider.getPlayerRankDAO().getPlayerRank(uuid);
+        if (rankId == null) {
+            rankId = AstalisPermManager.getRankManager().getDefaultRankId();
+        }
+
+        Rank rank = AstalisPermManager.getRankManager().getRank(rankId);
+        return rank != null ? rank.getSuffix() : "";
+    }
+
+
 }

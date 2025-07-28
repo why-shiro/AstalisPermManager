@@ -2,6 +2,7 @@ name: AstalisPermManager
 version: '1.0-SNAPSHOT'
 main: net.neostellar.astalisPermManager.AstalisPermManager
 api-version: '1.21'
+softdepend: [PlaceholderAPI]
 commands:
   apm:
     description: Ana komut

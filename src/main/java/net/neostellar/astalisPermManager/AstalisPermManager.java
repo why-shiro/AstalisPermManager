@@ -10,10 +10,12 @@ import net.neostellar.astalisPermManager.listener.PlayerJoinListener;
 import net.neostellar.astalisPermManager.listener.PlayerLeaveListener;
 import net.neostellar.astalisPermManager.listener.gui.GuiClickListener;
 import net.neostellar.astalisPermManager.listener.gui.GuiPlayerInputListener;
+import net.neostellar.astalisPermManager.papi.RankExpansion;
 import net.neostellar.astalisPermManager.rank.Rank;
 import net.neostellar.astalisPermManager.rank.RankManager;
 import net.neostellar.astalisPermManager.service.PermissionService;
 import net.neostellar.astalisPermManager.service.RankExpiryWatcher;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
@@ -59,6 +61,13 @@ public final class AstalisPermManager extends JavaPlugin {
 
         //Tab Completer
         Objects.requireNonNull(getCommand("apm")).setTabCompleter(new ApmTabCompleter());
+
+        //Other Registers
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new RankExpansion().register();
+            getLogger().info("✅ AstalisPermManager PAPI genişletmesi aktif!");
+        }
+
 
     }
 
