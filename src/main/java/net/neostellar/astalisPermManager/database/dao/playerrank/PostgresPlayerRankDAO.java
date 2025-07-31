@@ -138,6 +138,6 @@ public class PostgresPlayerRankDAO implements PlayerRankDAO {
 
     @Override
     public Instant getRankExpiry(UUID uuid) {
-        return getRankExpireTime(uuid); // aynı işlevi görüyor
+        return getRankExpireTime(uuid);
     }
 }

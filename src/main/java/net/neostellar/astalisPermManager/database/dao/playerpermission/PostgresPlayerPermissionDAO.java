@@ -1,18 +1,14 @@
 package net.neostellar.astalisPermManager.database.dao.playerpermission;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.neostellar.astalisPermManager.database.DatabaseManager;
 
 import java.sql.*;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class PostgresPlayerPermissionDAO implements PlayerPermissionDAO {
-    private final ObjectMapper mapper = new ObjectMapper(); // JSON parser (gerekmese bile bırakılmış)
 
     @Override
     public void createTable() {
@@ -140,7 +136,6 @@ public class PostgresPlayerPermissionDAO implements PlayerPermissionDAO {
         String deleteSql = "DELETE FROM player_permissions WHERE expires_at IS NOT NULL AND expires_at < CURRENT_TIMESTAMP";
 
         try (Connection conn = DatabaseManager.getConnection()) {
-            // Önce etkilenen oyuncuları al
             try (PreparedStatement selectPs = conn.prepareStatement(selectSql);
                  ResultSet rs = selectPs.executeQuery()) {
                 while (rs.next()) {
@@ -148,7 +143,7 @@ public class PostgresPlayerPermissionDAO implements PlayerPermissionDAO {
                 }
             }
 
-            // Sonra kayıtları sil
+
             try (PreparedStatement deletePs = conn.prepareStatement(deleteSql)) {
                 deletePs.executeUpdate();
             }

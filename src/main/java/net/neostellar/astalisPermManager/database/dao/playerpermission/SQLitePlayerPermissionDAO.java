@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class SQLitePlayerPermissionDAO implements PlayerPermissionDAO {
-    private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public void createTable() {

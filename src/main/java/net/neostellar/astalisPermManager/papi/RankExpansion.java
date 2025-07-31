@@ -24,7 +24,7 @@ public class RankExpansion extends PlaceholderExpansion {
 
     @Override
     public boolean persist() {
-        return true; // reload sonrası da kayıtlı kal
+        return true;
     }
 
     @Override

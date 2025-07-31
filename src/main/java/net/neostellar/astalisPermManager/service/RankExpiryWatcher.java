@@ -26,7 +26,7 @@ public class RankExpiryWatcher {
                 Player player = Bukkit.getPlayer(uuid);
                 if (player != null && player.isOnline()) {
                     Bukkit.getScheduler().runTask(AstalisPermManager.getInstance(), () -> {
-                        AstalisPermManager.getPermissionService().refreshAsync(player); // tüm perms’i tekrar yükle
+                        AstalisPermManager.getPermissionService().refreshAsync(player);
                         player.sendMessage("§cRank süren dolduğu için varsayılan rank'a döndün.");
                     });
                 }
@@ -45,6 +45,6 @@ public class RankExpiryWatcher {
 
 
 
-        }, 20L * 30, 20L * 30); // 30 saniyede bir
+        }, 20L * 30, 20L * 30);
     }
 }

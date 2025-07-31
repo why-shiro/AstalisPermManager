@@ -64,7 +64,7 @@ public class ApmCommandExecutor implements CommandExecutor {
                 try {
                     if (durationStr.equalsIgnoreCase("permanent")){
                         sender.sendMessage("§a" + playerName + " adlı oyuncuya " + rankId + " rütbesi verildi. Süre: §cSınırsız");
-                        DAOProvider.getPlayerRankDAO().setPlayerRank(Bukkit.getPlayerUniqueId(playerName), rankId, null);
+                        DAOProvider.getPlayerRankDAO().setPlayerRank(Bukkit.getPlayer(playerName).getUniqueId(), rankId, null);
 
                         Player target = Bukkit.getPlayer(playerName);
                         if (target != null && target.isOnline()) {
@@ -74,7 +74,7 @@ public class ApmCommandExecutor implements CommandExecutor {
                         long duration = TimeUtils.parseDuration(durationStr);
                         Instant expiry = Instant.now().plusMillis(duration);
                         sender.sendMessage("§a" + playerName + " adlı oyuncuya " + rankId + " rütbesi verildi. Süre: " + duration + "ms");
-                        DAOProvider.getPlayerRankDAO().setPlayerRank(Bukkit.getPlayerUniqueId(playerName), rankId, expiry);
+                        DAOProvider.getPlayerRankDAO().setPlayerRank(Bukkit.getPlayer(playerName).getUniqueId(), rankId, expiry);
 
                         Player target = Bukkit.getPlayer(playerName);
                         if (target != null && target.isOnline()) {
@@ -269,7 +269,7 @@ public class ApmCommandExecutor implements CommandExecutor {
             }
 
             String playerName = args[2];
-            UUID uuid = Bukkit.getPlayerUniqueId(playerName);
+            UUID uuid = Bukkit.getPlayer(playerName).getUniqueId();
             if (uuid == null) {
                 sender.sendMessage("§cOyuncu bulunamadı: " + playerName);
                 return;
@@ -308,7 +308,7 @@ public class ApmCommandExecutor implements CommandExecutor {
             }
 
             String playerName = args[2];
-            UUID uuid = Bukkit.getPlayerUniqueId(playerName);
+            UUID uuid = Bukkit.getPlayer(playerName).getUniqueId();
             if (uuid == null) {
                 sender.sendMessage("§cOyuncu bulunamadı: " + playerName);
                 return;
@@ -327,9 +327,8 @@ public class ApmCommandExecutor implements CommandExecutor {
             return;
         }
 
-        // Diğer: oyuncu bilgilerini göster
         String playerName = args[1];
-        UUID uuid = Bukkit.getPlayerUniqueId(playerName);
+        UUID uuid = Bukkit.getPlayer(playerName).getUniqueId();
         if (uuid == null) {
             sender.sendMessage("§cOyuncu bulunamadı: " + playerName);
             return;

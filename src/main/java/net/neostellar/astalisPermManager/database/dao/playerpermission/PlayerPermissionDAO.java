@@ -6,14 +6,12 @@ import java.util.UUID;
 
 public interface PlayerPermissionDAO {
     void createTable();
-    void setPermission(UUID uuid, String permission, Instant expiresAt); // expiresAt null → kalıcı
+    void setPermission(UUID uuid, String permission, Instant expiresAt);
     void removePermission(UUID uuid, String permission);
-    List<String> getActivePermissions(UUID uuid); // sadece aktif olanlar
+    List<String> getActivePermissions(UUID uuid);
 
-    /** Tüm izinleri verir (süreli, süresiz ayrımı yapılmaksızın) */
     List<PlayerPermissionEntry> getAllPermissions(UUID uuid);
 
-    /** Belirli bir iznin bitiş tarihini verir (yoksa null) */
     Instant getPermissionExpiry(UUID uuid, String permission);
 
     List<UUID> clearExpiredPermissions();

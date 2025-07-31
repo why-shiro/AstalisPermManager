@@ -73,7 +73,7 @@ public final class AstalisPermManager extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        DatabaseManager.close(); // Bağlantıları düzgün kapat
+        DatabaseManager.close();
         getLogger().info("❌ AstalisPermManager devre dışı bırakıldı.");
     }
 
